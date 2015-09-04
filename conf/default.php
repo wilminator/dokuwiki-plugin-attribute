@@ -5,5 +5,5 @@
  * @author Mike Wilmes <mwilmes@avc.edu>
  */
 
-$conf['store'] = '';
+$conf['store'] = 'data/attribute';
 $conf['no_compress'] = 0;
