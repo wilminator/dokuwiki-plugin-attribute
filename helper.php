@@ -21,7 +21,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
         $this->loadConfig();
         // Create the path used for attribute data.
         $path = substr($this->conf['store'], 0, 1) == '/' ? $this->conf['store'] : DOKU_INC . $this->conf['store'];
-        $this->storepath = ($this->conf['store'] === '' || !is_dir($path)) ? null : $path;
+        $this->storepath = ($this->conf['store'] === '' || !io_mkdir_p($path)) ? null : $path;
         // A directory is needed.
         if(is_null($this->storepath)) {
             msg("Attribute: Configuration item 'store' is not set to a writeable directory.", -1);
@@ -395,8 +395,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
             $result = false;
         }
 
-        $lock = $namespace . '.' . $user;
-        io_lock($lock);
+        io_unlock($lock);
 
         return $result;
     }
