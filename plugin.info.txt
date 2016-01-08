@@ -1,13 +1,7 @@
 ﻿base   attribute
-
 author Michael Wilmes
-
 email  mwilmes@avc.edu
-
-date   2015-09-10
-
-name   attribute plugin
-
+date   2016-01-06
+name   Attribute Plugin
 desc   Arbitrary attribute definition and storage for user associated data.
-
 url    https://www.dokuwiki.org/plugin:attribute
