@@ -33,20 +33,6 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
     }
 
     /**
-     * return some info
-     */
-    public function getInfo() {
-        return array(
-            'author' => 'Mike Wilmes',
-            'email'  => 'mwilmes@avc.edu',
-            'date'   => '2015-09-03',
-            'name'   => 'Attribute Plugin',
-            'desc'   => 'Arbitrary attribute definition and storage for user associated data.',
-            'url'    => 'None for now, hoping for http://www.dokuwiki.org/plugin:attribute',
-        );
-    }
-
-    /**
      * Return info about supported methods in this Helper Plugin
      *
      * @return array of public methods
