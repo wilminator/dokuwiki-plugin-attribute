@@ -424,7 +424,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin
 
     /**
      * Deletes all attribute data for a specified namespace for a user. Only
-     * useable by an admin.
+     * usable the user themselves or an admin.
      *
      * @param string $namespace
      * @param string $user
@@ -437,9 +437,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin
             return false;
         }
 
-        // Ensure this user purges their own data or is an admin.
-        global $INFO;
-        if(!$INFO['isadmin']) {
+        if ($this->validateUser($user) === null) {
             return false;
         }
 
