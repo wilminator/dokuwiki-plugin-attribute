@@ -1,29 +1,32 @@
 <?php
+
 /**
  * DokuWiki Plugin attribute (Helper Component)
  *
- * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Mike Wilmes <mwilmes@avc.edu>
+ * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  */
-
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
 /**
  * Class helper_plugin_attribute
  */
-class helper_plugin_attribute extends DokuWiki_Plugin {
+class helper_plugin_attribute extends DokuWiki_Plugin
+{
     public $success = false;
     protected $storepath = null;
     protected $cache = null;
 
-    public function __construct() {
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
         $this->loadConfig();
         // Create the path used for attribute data.
         $path = substr($this->conf['store'], 0, 1) == '/' ? $this->conf['store'] : DOKU_INC . $this->conf['store'];
         $this->storepath = ($this->conf['store'] === '' || !io_mkdir_p($path)) ? null : $path;
         // A directory is needed.
-        if(is_null($this->storepath)) {
+        if (is_null($this->storepath)) {
             msg("Attribute: Configuration item 'store' is not set to a writeable directory.", -1);
             return;
         }
@@ -35,13 +38,14 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
     /**
      * Return info about supported methods in this Helper Plugin
      *
-     * @return array of public methods
+     * @return array Array of public methods
      */
-    public function getMethods() {
+    public function getMethods()
+    {
         $result   = array();
         $result[] = array(
             'name'       => 'enumerateAttributes',
-            'desc'       => "Generates a list of known attributes in the specified namespace for a user.  If user is present, must be an admin, otherwise defaults to currently logged in user.",
+            'desc'       => "Generates a list of known attributes in the specified namespace for a user. If user is present, must be an admin, otherwise defaults to currently logged in user.",
             'parameters' => array(
                 'namespace' => 'string',
                 'user'      => 'string (optional)',
@@ -115,25 +119,30 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * is an admin and another user name is supplied, that value is returned.
      * Otherwise the name of the logged in user is supplied. If no user is
      * logged in, null is returned.
-     * @param $user
+     *
+     * @param string $user
+     *
      * @return null|string
      */
-    private function validateUser($user) {
+    private function validateUser($user)
+    {
         // We need a special circumstance.  If a user is not logged in, but we
         // are performing a login, enable access to the attributes of the user
         // being logged in IF DIRECTLY SPECIFIED.
         global $INFO, $ACT, $USERINFO, $INPUT;
-        if($ACT == 'login' && !$USERINFO && $user == $INPUT->str('u')) return $user;
+        if ($ACT == 'login' && !$USERINFO && $user == $INPUT->str('u')) {
+            return $user;
+        }
         // This does not meet the special circumstance listed above.
         // Perform rights validation.
         // If no one is logged in, then return null.
-        if($_SERVER['REMOTE_USER'] == '') {
+        if ($_SERVER['REMOTE_USER'] == '') {
             return null;
         }
         // If the user is not an admin, no user is specified, or the
         // named user is not the logged in user, then return the currently
         // logged in user.
-        if(!$user || ($user !== $_SERVER['REMOTE_USER'] && !$INFO['isadmin'])) {
+        if (!$user || ($user !== $_SERVER['REMOTE_USER'] && !$INFO['isadmin'])) {
             return $_SERVER['REMOTE_USER'];
         }
         // The user is an admin and a name was specified.
@@ -144,20 +153,23 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * Load all attribute data for a user in the specified namespace.
      * This loads all user attribute data from file.  A copy is stored in
      * memory to alleviate repeated file accesses.
+     *
      * @param $namespace
      * @param $user
+     *
      * @return array|mixed
      */
-    private function loadAttributes($namespace, $user) {
+    private function loadAttributes($namespace, $user)
+    {
         $key      = rawurlencode($namespace) . '.' . rawurlencode($user);
         $filename = $this->storepath . "/" . $key;
 
         // If the file does not exist, then return an empty attribute array.
-        if(!is_file($filename)) {
+        if (!is_file($filename)) {
             return array();
         }
 
-        if(array_key_exists($filename, $this->cache)) {
+        if (array_key_exists($filename, $this->cache)) {
             return $this->cache[$filename];
         }
 
@@ -165,20 +177,24 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
 
         // Unserialize returns false on bad data.
         $preserial = @unserialize($packet);
-        if($preserial !== false) {
+        if ($preserial !== false) {
             list($compressed, $serial) = $preserial;
-            if($compressed) {
+            if ($compressed) {
                 $serial = gzuncompress($serial);
             }
             $unserial = @unserialize($serial);
             if ($unserial !== false) {
                 list($filekey, $data) = $unserial;
-                if ($filekey != $key) { $data = array(); }
+                if ($filekey != $key) {
+                    $data = array();
+                }
             }
         }
 
         // Set a reasonable default if either unserialize failed.
-        if ($preserial == false || $unseriala === false) { $data = array(); }
+        if ($preserial == false || $unseriala === false) {
+            $data = array();
+        }
 
         $this->cache[$filename] = $data;
 
@@ -192,12 +208,15 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * There is an uncompressed flag to denote whether the data was compressed
      * or not, so both compressed and uncompressed data can be loaded
      * regardless of the compression configuration.
+     *
      * @param $namespace
      * @param $user
      * @param $data
+     *
      * @return bool
      */
-    private function saveAttributes($namespace, $user, $data) {
+    private function saveAttributes($namespace, $user, $data)
+    {
         $key = rawurlencode($namespace) . '.' . rawurlencode($user);
         $filename = $this->storepath . "/" . $key;
 
@@ -205,7 +224,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
 
         $serial = serialize(array($key, $data));
         $compressed = $this->conf['no_compress'] === 0;
-        if($compressed) {
+        if ($compressed) {
             $serial = gzcompress($serial);
         }
         $packet = serialize(array($compressed, $serial));
@@ -216,11 +235,14 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
     /**
      * Generates a list of users that have assigned attributes in the
      * specified namespace.
-     * @param $namespace
+     *
+     * @param string $namespace
+     *
      * @return array|bool
      */
-    public function enumerateUsers($namespace) {
-        if(!$this->success) {
+    public function enumerateUsers($namespace)
+    {
+        if (!$this->success) {
             return false;
         }
 
@@ -229,15 +251,17 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
         // Restrict to namespace
         $key = rawurlencode($namespace) . '.';
         $files = array_filter(
-            $listing, function ($x) use ($key) {
-            return substr($x, 0, strlen($key)) == $key;
+            $listing,
+            function ($x) use ($key) {
+                return substr($x, 0, strlen($key)) == $key;
             }
         );
         // Get usernames from files
         $users = array_map(
             function ($x) use ($key) {
                 return substr($x, strlen($key));
-            }, $files
+            },
+            $files
         );
 
         return $users;
@@ -247,19 +271,22 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * set - Set the value of an attribute in a specified namespace. Returns
      * boolean success (false if something went wrong). If user is present,
      * must be an admin, otherwise defaults to currently logged in user.
-     * @param      $namespace
-     * @param      $attribute
-     * @param      $value
-     * @param null $user
+     *
+     * @param string $namespace
+     * @param string $attribute
+     * @param string $value
+     * @param null   $user
+     *
      * @return bool
      */
-    public function set($namespace, $attribute, $value, $user = null) {
-        if(!$this->success) {
+    public function set($namespace, $attribute, $value, $user = null)
+    {
+        if (!$this->success) {
             return false;
         }
 
         $user = $this->validateUser($user);
-        if($user === null) {
+        if ($user === null) {
             return false;
         }
         $lock= $namespace . '.' . $user;
@@ -268,7 +295,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
         $data = $this->loadAttributes($namespace, $user);
 
         $result = false;
-        if($data !== null) {
+        if ($data !== null) {
             // Set the data in the array.
             $data[$attribute] = $value;
             // Store the changed data.
@@ -283,17 +310,20 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
     /**
      * Generates a list of users that have assigned attributes in the
      * specified namespace.
-     * @param      $namespace
-     * @param null $user
+     *
+     * @param string      $namespace
+     * @param string|null $user
+     *
      * @return array|bool
      */
-    public function enumerateAttributes($namespace, $user = null) {
-        if(!$this->success) {
+    public function enumerateAttributes($namespace, $user = null)
+    {
+        if (!$this->success) {
             return false;
         }
 
         $user = $this->validateUser($user);
-        if($user === null) {
+        if ($user === null) {
             return false;
         }
 
@@ -304,7 +334,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
 
         io_unlock($lock);
 
-        if($data === null) {
+        if ($data === null) {
             return false;
         }
 
@@ -316,18 +346,21 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * Checks if an attribute exists for a user in a given namespace. If user
      * is present, must be an admin, otherwise defaults to currently logged in
      * user.
-     * @param      $namespace
-     * @param      $attribute
-     * @param null $user
+     *
+     * @param string      $namespace
+     * @param string      $attribute
+     * @param string|null $user
+     *
      * @return bool
      */
-    public function exists($namespace, $attribute, $user = null) {
-        if(!$this->success) {
+    public function exists($namespace, $attribute, $user = null)
+    {
+        if (!$this->success) {
             return false;
         }
 
         $user = $this->validateUser($user);
-        if($user === null) {
+        if ($user === null) {
             return false;
         }
 
@@ -338,7 +371,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
 
         io_unlock($lock);
 
-        if(!is_array($data)) {
+        if (!is_array($data)) {
             return false;
         }
 
@@ -349,18 +382,21 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * Deletes attribute data in a specified namespace by its name. If user is
      * present, must be an admin, otherwise defaults to currently logged in
      * user.
-     * @param      $namespace
-     * @param      $attribute
-     * @param null $user
+     *
+     * @param string      $namespace
+     * @param string      $attribute
+     * @param string|null $user
+     *
      * @return bool
      */
-    public function del($namespace, $attribute, $user = null) {
-        if(!$this->success) {
+    public function del($namespace, $attribute, $user = null)
+    {
+        if (!$this->success) {
             return false;
         }
 
         $user = $this->validateUser($user);
-        if($user === null) {
+        if ($user === null) {
             return false;
         }
 
@@ -368,10 +404,10 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
         io_lock($lock);
 
         $data = $this->loadAttributes($namespace, $user);
-        if($data !== null) {
+        if ($data !== null) {
             // Special case- if the attribute already does not exist, then
             // return true. We are at the desired state.
-            if(array_key_exists($attribute, $data)) {
+            if (array_key_exists($attribute, $data)) {
                 unset($data[$attribute]);
                 $result = $this->saveAttributes($namespace, $user, $data);
             } else {
@@ -389,16 +425,19 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
     /**
      * Deletes all attribute data for a specified namespace for a user. Only
      * useable by an admin.
-     * @param $namespace
-     * @param $user
+     *
+     * @param string $namespace
+     * @param string $user
+     *
      * @return bool
      */
-    public function purge($namespace, $user) {
-        if(!$this->success) {
+    public function purge($namespace, $user)
+    {
+        if (!$this->success) {
             return false;
         }
 
-        // Ensure this user is an admin.
+        // Ensure this user purges their own data or is an admin.
         global $INFO;
         if(!$INFO['isadmin']) {
             return false;
@@ -410,7 +449,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
         $key = rawurlencode($namespace) . '.' . rawurlencode($user);
         $filename = $this->storepath . "/" . $key;
 
-        if(file_exists($filename)) {
+        if (file_exists($filename)) {
             $result = unlink($filename);
         } else {
             // If the file does not exist, the desired end state has been
@@ -429,23 +468,26 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
      * success (you may have false, null, 0, or '' as stored value). If user
      * is present, must be an admin, otherwise defaults to currently logged in
      * user.
-     * @param            $namespace
-     * @param            $attribute
-     * @param bool|false $success
-     * @param null       $user
+     *
+     * @param string      $namespace
+     * @param string      $attribute
+     * @param bool        $success
+     * @param string|null $user
+     *
      * @return bool
      */
-    public function get($namespace, $attribute, &$success = false, $user = null) {
+    public function get($namespace, $attribute, &$success = false, $user = null)
+    {
         // Prepare the supplied success flag as false.  It will be changed to
         // true on success.
         $success = false;
 
-        if(!$this->success) {
+        if (!$this->success) {
             return false;
         }
 
         $user = $this->validateUser($user);
-        if($user === null) {
+        if ($user === null) {
             return false;
         }
 
@@ -456,7 +498,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin {
 
         io_unlock($lock);
 
-        if($data === null || !array_key_exists($attribute, $data)) {
+        if ($data === null || !array_key_exists($attribute, $data)) {
             return false;
         }
 
