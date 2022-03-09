@@ -192,7 +192,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin
         }
 
         // Set a reasonable default if either unserialize failed.
-        if ($preserial == false || $unseriala === false) {
+        if ($preserial == false || $unserial === false) {
             $data = array();
         }
 
