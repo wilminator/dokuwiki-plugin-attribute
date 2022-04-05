@@ -259,7 +259,7 @@ class helper_plugin_attribute extends DokuWiki_Plugin
         // Get usernames from files
         $users = array_map(
             function ($x) use ($key) {
-                return substr($x, strlen($key));
+                return rawurldecode(substr($x, strlen($key)));
             },
             $files
         );
